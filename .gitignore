@@ -1,0 +1,14 @@
+*.pyc
+**/result/*
+**/results/*
+**/slides/*
+HW-2/data/*
+**/test-data/*
+**/submission/*
+*.zip
+**/git-refs/*
+*.vscod
+reference/*
+*.pickle
+*.mat
+./HW-4/python/data/*
