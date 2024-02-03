@@ -12,3 +12,4 @@ reference/*
 *.pickle
 *.mat
 ./HW-4/python/data/*
+*.ipynb
