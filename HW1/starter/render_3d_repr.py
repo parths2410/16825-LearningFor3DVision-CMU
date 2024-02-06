@@ -200,11 +200,114 @@ def render_klein(image_size=256, num_samples=200, device=None):
 
     return renders
 
+def render_torus_mesh(image_size=256, voxel_size=64, device=None):
+    """
+    Renders a sphere using parametric sampling. Samples num_samples ** 2 points.
+    """
+
+    if device is None:
+        device = get_device()
+
+    min_value = -1.1
+    max_value = 1.1
+
+    R1 = 0.75
+    R2 = 0.25
+
+    X, Y, Z = torch.meshgrid([torch.linspace(min_value, max_value, voxel_size)] * 3)
+
+    voxels = (R1 - np.sqrt(X ** 2 + Y ** 2)) ** 2 + Z ** 2 - R2 ** 2
+    vertices, faces = mcubes.marching_cubes(mcubes.smooth(voxels), isovalue=0)
+    vertices = torch.tensor(vertices).float()
+    faces = torch.tensor(faces.astype(int))
+
+    vertices = (vertices / voxel_size) * (max_value - min_value) + min_value
+    textures = (vertices - vertices.min()) / (vertices.max() - vertices.min())
+    textures = pytorch3d.renderer.TexturesVertex(textures.unsqueeze(0))
+
+    mesh = pytorch3d.structures.Meshes([vertices], [faces], textures=textures).to(
+        device
+    )
+    lights = pytorch3d.renderer.PointLights(location=[[0, 0.0, -4.0]], device=device,)
+    renderer = get_mesh_renderer(image_size=image_size, device=device)
+    
+    num_views = 120
+    radius = 3
+    num_rotations = 4
+    dist, elev, azim = generate_spiral_path(num_views, radius, num_rotations)
+    
+    renders = []
+    for d, e, a in zip(dist, elev, azim):
+        R, T = pytorch3d.renderer.look_at_view_transform(d, e, a)
+        # Prepare the camera:
+        cameras = pytorch3d.renderer.FoVPerspectiveCameras(
+            R=R, T=T, fov=60, device=device
+        )
+
+        rend = renderer(mesh, cameras=cameras, lights=lights)
+        rend = rend.cpu().numpy()[0, ..., :3]
+        rend = rend * 255
+        
+        renders.append(rend.astype(np.uint8))
+
+    return renders
+
+def render_spring_mesh(image_size=256, voxel_size=64, device=None):
+
+    if device is None:
+        device = get_device()
+
+    min_value = -1.1
+    max_value = 1.1
+
+    R1 = 0.75
+    R2 = 0.2
+
+    X, Y, Z = torch.meshgrid([torch.linspace(min_value, max_value, voxel_size)] * 3)
+
+    voxels = (R1 - np.sqrt(X ** 2 + Y ** 2)) ** 2 + (Z + np.arctan2(X, Y) / np.pi)** 2 - R2 ** 2
+    vertices, faces = mcubes.marching_cubes(mcubes.smooth(voxels), isovalue=0)
+    vertices = torch.tensor(vertices).float()
+    faces = torch.tensor(faces.astype(int))
+
+    vertices = (vertices / voxel_size) * (max_value - min_value) + min_value
+    textures = (vertices - vertices.min()) / (vertices.max() - vertices.min())
+    textures = pytorch3d.renderer.TexturesVertex(textures.unsqueeze(0))
+
+    mesh = pytorch3d.structures.Meshes([vertices], [faces], textures=textures).to(
+        device
+    )
+    lights = pytorch3d.renderer.PointLights(location=[[0, 0.0, -4.0]], device=device,)
+    renderer = get_mesh_renderer(image_size=image_size, device=device)
+    
+    num_views = 120
+    radius = 3
+    num_rotations = 4
+    dist, elev, azim = generate_spiral_path(num_views, radius, num_rotations)
+    
+    renders = []
+    for d, e, a in zip(dist, elev, azim):
+        R, T = pytorch3d.renderer.look_at_view_transform(d, e, a)
+        # Prepare the camera:
+        cameras = pytorch3d.renderer.FoVPerspectiveCameras(
+            R=R, T=T, fov=60, device=device
+        )
+
+        rend = renderer(mesh, cameras=cameras, lights=lights)
+        rend = rend.cpu().numpy()[0, ..., :3]
+        rend = rend * 255
+        
+        renders.append(rend.astype(np.uint8))
+
+    return renders
+
 if __name__ == "__main__":
     # images = render_plant()
     # images = render_torus()
-    images = render_klein()
-    imageio.mimsave("output/mobius_360.gif", images, fps=30)
+    # images = render_klein()
+    images = render_torus_mesh()
+    # images = render_spring_mesh()
+    imageio.mimsave("output/torus_mesh_360.gif", images, fps=30)
 
     # images = render_sphere()
     # plt.imshow(images)
