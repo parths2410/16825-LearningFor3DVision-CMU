@@ -32,9 +32,9 @@ def generate_spiral_path(num_views, radius, num_rotations):
     azim = np.linspace(-180, 180, num_views)
     
     # Spiral motion
-    dist_offset = 1
+    dist_offset = 0
     dist += dist_offset * np.sin(t / 25)
-    
+    elev *= 0
     return dist, elev, azim
 
 def render_pcd(
@@ -53,7 +53,11 @@ def render_pcd(
     )
     verts = torch.Tensor(point_cloud["verts"][::50]).to(device).unsqueeze(0)
     rgb = torch.Tensor(point_cloud["rgb"][::50]).to(device).unsqueeze(0)
-    point_cloud = pytorch3d.structures.Pointclouds(points=verts, features=rgb)
+    
+    point_cloud = pytorch3d.structures.Pointclouds(
+        points=verts, 
+        features=rgb)
+    
     R, T = pytorch3d.renderer.look_at_view_transform(4, 10, 0)
     cameras = pytorch3d.renderer.FoVPerspectiveCameras(R=R, T=T, device=device)
     
@@ -98,7 +102,110 @@ def render_plant():
     return render_pcd(point_cloud)
     # plt.imshow(rend)
     # plt.show()
+    
+def render_torus(image_size=256, num_samples=200, device=None):
+    """
+    Renders a sphere using parametric sampling. Samples num_samples ** 2 points.
+    """
+
+    if device is None:
+        device = get_device()
+
+    R1 = 1
+    R2 = 0.5
+    u = torch.linspace(0, 2 * np.pi, num_samples)
+    v = torch.linspace(0, 2 * np.pi, num_samples)
+    U, V = torch.meshgrid(u, v)
+
+    x = (R1 + R2 * torch.cos(V)) * torch.cos(U)
+    y = (R1 + R2 * torch.cos(V)) * torch.sin(U)
+    z = R2 * torch.sin(V)
+
+    points = torch.stack((x.flatten(), y.flatten(), z.flatten()), dim=1)
+    color = (points - points.min()) / (points.max() - points.min())
+
+    sphere_point_cloud = pytorch3d.structures.Pointclouds(
+        points=[points], features=[color],
+    ).to(device)
+
+    cameras = pytorch3d.renderer.FoVPerspectiveCameras(T=[[0, 0, 3]], device=device)
+    renderer = get_points_renderer(image_size=image_size, device=device)
+    
+    num_views = 120
+    radius = 3
+    num_rotations = 4
+    dist, elev, azim = generate_spiral_path(num_views, radius, num_rotations)
+    
+    renders = []
+    for d, e, a in zip(dist, elev, azim):
+        R, T = pytorch3d.renderer.look_at_view_transform(d, e, a)
+        # Prepare the camera:
+        cameras = pytorch3d.renderer.FoVPerspectiveCameras(
+            R=R, T=T, fov=60, device=device
+        )
+
+        rend = renderer(sphere_point_cloud, cameras=cameras)
+        rend = rend.cpu().numpy()[0, ..., :3]
+        rend = rend * 255
+        
+        renders.append(rend.astype(np.uint8))
+
+    return renders
+
+def render_klein(image_size=256, num_samples=200, device=None):
+    """
+    Renders a sphere using parametric sampling. Samples num_samples ** 2 points.
+    """
+
+    if device is None:
+        device = get_device()
+
+    a = 3
+    u = torch.linspace(0, 2 * np.pi, num_samples)
+    v = torch.linspace(0, 2 * np.pi, num_samples)
+    U, V = torch.meshgrid(u, v)
+
+    x = (a + torch.cos(U / 2) * torch.sin(V) - torch.sin(U / 2) * torch.sin(2 * V)) * torch.cos(U)
+    y = (a + torch.cos(U / 2) * torch.sin(V) - torch.sin(U / 2) * torch.sin(2 * V)) * torch.sin(U)
+    z = torch.sin(U / 2) * torch.sin(V) + torch.cos(U / 2) * torch.sin(2 * V)
+
+    points = torch.stack((x.flatten(), y.flatten(), z.flatten()), dim=1)
+    color = (points - points.min()) / (points.max() - points.min())
+
+    sphere_point_cloud = pytorch3d.structures.Pointclouds(
+        points=[points], features=[color],
+    ).to(device)
+
+    cameras = pytorch3d.renderer.FoVPerspectiveCameras(T=[[0, 0, 3]], device=device)
+    renderer = get_points_renderer(image_size=image_size, device=device)
+    
+    num_views = 120
+    radius = 10
+    num_rotations = 4
+    dist, elev, azim = generate_spiral_path(num_views, radius, num_rotations)
+    
+    renders = []
+    for d, e, a in zip(dist, elev, azim):
+        R, T = pytorch3d.renderer.look_at_view_transform(d, e, a)
+        # Prepare the camera:
+        cameras = pytorch3d.renderer.FoVPerspectiveCameras(
+            R=R, T=T, fov=60, device=device
+        )
+
+        rend = renderer(sphere_point_cloud, cameras=cameras)
+        rend = rend.cpu().numpy()[0, ..., :3]
+        rend = rend * 255
+        
+        renders.append(rend.astype(np.uint8))
+
+    return renders
 
 if __name__ == "__main__":
-    images = render_plant()
-    imageio.mimsave("output/plant3_360.gif", images, fps=30)
+    # images = render_plant()
+    # images = render_torus()
+    images = render_klein()
+    imageio.mimsave("output/mobius_360.gif", images, fps=30)
+
+    # images = render_sphere()
+    # plt.imshow(images)
+    # plt.show()
