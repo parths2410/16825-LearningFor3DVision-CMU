@@ -10,7 +10,7 @@ import torch
 import imageio
 
 from starter.utils import get_device, get_mesh_renderer, get_points_renderer, unproject_depth_image
-from starter.render_mesh import generate_spiral_path
+# from starter.render_mesh import generate_spiral_path
 
 from starter.render_generic import load_rgbd_data
 
@@ -28,7 +28,7 @@ def generate_spiral_path(num_views, radius, num_rotations):
     """
     t = np.linspace(0, num_rotations * 2 * np.pi, num_views)
     dist = np.linspace(radius, radius, num_views)
-    elev = np.concatenate([np.linspace(0, -60, int(num_views/2)), np.linspace(-59, 0, int(num_views/2))])
+    elev = np.linspace(0, 0, num_views)
     azim = np.linspace(-180, 180, num_views)
     
     # Spiral motion
@@ -75,6 +75,7 @@ def render_pcd(
         )
 
         rend = renderer(point_cloud, cameras=cameras)
+        rend = torch.rot90(torch.rot90(rend, 1, (0, 1)), 1, (0, 1))
         rend = rend.cpu().numpy()[0, ..., :3]  # (B, H, W, 4) -> (H, W, 3)
         rend = rend * 255
         renders.append(rend.astype(np.uint8))
@@ -302,12 +303,12 @@ def render_spring_mesh(image_size=256, voxel_size=64, device=None):
     return renders
 
 if __name__ == "__main__":
-    # images = render_plant()
-    images = render_torus()
-    # images = render_klein()
-    # images = render_torus_mesh()
-    # images = render_spring_mesh()
-    imageio.mimsave("output/torus_360.gif", images, fps=30)
+    images = render_plant()
+    # images = render_torus()
+    # # images = render_klein()
+    # # images = render_torus_mesh()
+    # # images = render_spring_mesh()
+    imageio.mimsave("output/plant3_360.gif", images, fps=30)
 
     # images = render_sphere()
     # plt.imshow(images)
