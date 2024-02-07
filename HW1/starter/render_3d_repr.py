@@ -111,8 +111,8 @@ def render_torus(image_size=256, num_samples=200, device=None):
     if device is None:
         device = get_device()
 
-    R1 = 1
-    R2 = 0.5
+    R1 = 0.75
+    R2 = 0.25
     u = torch.linspace(0, 2 * np.pi, num_samples)
     v = torch.linspace(0, 2 * np.pi, num_samples)
     U, V = torch.meshgrid(u, v)
@@ -303,11 +303,11 @@ def render_spring_mesh(image_size=256, voxel_size=64, device=None):
 
 if __name__ == "__main__":
     # images = render_plant()
-    # images = render_torus()
+    images = render_torus()
     # images = render_klein()
-    images = render_torus_mesh()
+    # images = render_torus_mesh()
     # images = render_spring_mesh()
-    imageio.mimsave("output/torus_mesh_360.gif", images, fps=30)
+    imageio.mimsave("output/torus_360.gif", images, fps=30)
 
     # images = render_sphere()
     # plt.imshow(images)
