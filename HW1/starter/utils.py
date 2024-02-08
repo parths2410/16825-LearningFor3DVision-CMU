@@ -44,7 +44,8 @@ def get_points_renderer(
             device = torch.device("cuda:0")
         else:
             device = torch.device("cpu")
-    raster_settings = PointsRasterizationSettings(image_size=image_size, radius=radius,)
+    raster_settings = PointsRasterizationSettings(image_size=image_size, radius=radius,
+                                                  bin_size=0)
     renderer = PointsRenderer(
         rasterizer=PointsRasterizer(raster_settings=raster_settings),
         compositor=AlphaCompositor(background_color=background_color),
