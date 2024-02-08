@@ -95,7 +95,7 @@ def render_torus(image_size=256, num_samples=200, device=None):
     renders = []
     disco_color = torch.rand(3).to(device)
     for d, e, a in zip(dist, elev, azim):
-        if len(renders) % 20 == 0:
+        if len(renders) % 10 == 0:
             disco_color = torch.rand(3).to(device)
 
         complementory_color = torch.tensor([1, 1, 1]).to(device) - disco_color
