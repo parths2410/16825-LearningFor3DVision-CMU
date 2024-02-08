@@ -81,7 +81,7 @@ def render_pcd(
         renders.append(rend.astype(np.uint8))
     return renders
 
-def render_plant():
+def render_plant(num=1):
     data = load_rgbd_data()
 
     image1 = torch.tensor(data["rgb1"]).to(torch.float32)
@@ -96,9 +96,16 @@ def render_plant():
     camera2 = data["cameras2"]
     pcd_verts2, pcd_rgba2 = unproject_depth_image(image2, mask2, depth2, camera2)
     
-    pcd_verts = torch.cat([pcd_verts1, pcd_verts2], dim=0)
-    pcd_rgba = torch.cat([pcd_rgba1, pcd_rgba2], dim=0)
-
+    if num == 1:
+        pcd_verts = torch.cat([pcd_verts1], dim=0)
+        pcd_rgba = torch.cat([pcd_rgba1], dim=0)
+    elif num == 2:
+        pcd_verts = torch.cat([ pcd_verts2], dim=0)
+        pcd_rgba = torch.cat([ pcd_rgba2], dim=0)
+    else:
+        pcd_verts = torch.cat([pcd_verts1, pcd_verts2], dim=0)
+        pcd_rgba = torch.cat([pcd_rgba1, pcd_rgba2], dim=0)
+        
     point_cloud = {"verts": pcd_verts, "rgb": pcd_rgba}
     return render_pcd(point_cloud)
     # plt.imshow(rend)
