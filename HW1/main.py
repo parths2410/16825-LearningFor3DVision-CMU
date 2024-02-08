@@ -16,7 +16,7 @@ print("1.1 360-degree renders")
 from starter.render_mesh import render360
 output_path = "output/cow_360_render.gif"
 images = render360(obj_path=cow_path, image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 ## 1.2 Recreating the dolly zoom
 print("1.2 Recreating the dolly zoom")
@@ -52,7 +52,7 @@ tetrahedron = {
 }
 images = render360(tetrahedron, image_size=image_size)
 print(len(images), images[0].shape, np.max(images[0]))
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 ## 2.1 Construcitng a Cube
 print("2.1 Construcitng a Cube")
@@ -91,14 +91,14 @@ cube = {
 } 
 images = render360(tetrahedron, image_size=image_size)
 print(len(images), images[0].shape, np.max(images[0]))
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 3. Retexturing the mesh
 print("3. Retexturing the mesh")
 from starter.render_mesh import render_cow_retextured_360
 output_path = "output/textured_cow_360.gif"
 images = render_cow_retextured_360(cow_path=cow_path, image_size=image_size, color1=[0.7, 0.7, 1], color2=[0.7, 1, 0.7])
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 4. Camera Transforms
 print("4. Camera Transforms")
@@ -176,13 +176,13 @@ print("5.1 Render a point-cloud from RGBD")
 from starter.render_3d_repr import render_plant
 output_path = "output/plant1_360.gif"
 images = render_plant(num=1)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 output_path = "output/plant2_360.gif"
 images = render_plant(num=2)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 output_path = "output/plant3_360.gif"
 images = render_plant(num=3)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 5.2 Parametric Fucntions
 print("5.2 Parametric Fucntions")
@@ -190,13 +190,13 @@ print("torus")
 from starter.render_3d_repr import render_torus
 output_path = "output/torus_360.gif"
 images = render_torus(image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 print("mobius")
 from starter.render_3d_repr import render_klein
 output_path = "output/mobius_360.gif"
 images = render_klein(image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 5.3 Implicit Functions
 print("5.3 Implicit Functions")
@@ -204,20 +204,20 @@ print("torus mesh")
 from starter.render_3d_repr import render_torus_mesh
 output_path = "output/torus_mesh_360.gif"
 images = render_torus_mesh(image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 print("spring mesh")
 from starter.render_3d_repr import render_spring_mesh
 output_path = "output/spring_mesh_360.gif"
 images = render_spring_mesh(image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 6. Do Something fun
 print("6. Do Something fun")
 from starter.something_fun import render_torus
 output_path = "output/fun.gif"
 images = render_torus(image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 # 7. Samping points on a mesh
 print("7. Sampling points on a mesh")
@@ -225,19 +225,19 @@ print("10")
 from starter.sampling_mesh import render_cow
 output_path = "output/sampled_cow_10.gif"
 images = render_cow(cow_path=cow_path, num_samples=10, image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 print("100")
 output_path = "output/sampled_cow_100.gif"
 images = render_cow(cow_path=cow_path, num_samples=100, image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 print("1000")
 output_path = "output/sampled_cow_1000.gif"
 images = render_cow(cow_path=cow_path, num_samples=1000, image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
 
 print("10000")
 output_path = "output/sampled_cow_10000.gif"
 images = render_cow(cow_path=cow_path, num_samples=10000, image_size=image_size)
-imageio.mimsave(output_path, images, fps=30)
+imageio.mimsave(output_path, images, fps=30, loop=0)
