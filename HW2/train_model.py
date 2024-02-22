@@ -28,6 +28,7 @@ def get_args_parser():
     parser.add_argument("--load_checkpoint", action="store_true")
     parser.add_argument('--load_feat', action='store_true') 
     parser.add_argument("--device", default="cuda", type=str)
+    parser.add_argument("--cuda", default=0, type=int)
     return parser
 
 
@@ -116,7 +117,6 @@ def train_model(args):
         images_gt, ground_truth_3d = preprocess(feed_dict, args)
         read_time = time.time() - read_start_time
 
-        print("Ground Truth Shape - ", ground_truth_3d.shape)
         prediction_3d = model(images_gt, args)
 
         loss = calculate_loss(prediction_3d, ground_truth_3d, args)
@@ -152,4 +152,6 @@ def train_model(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Singleto3D", parents=[get_args_parser()])
     args = parser.parse_args()
+
+    torch.cuda.set_device(args.cuda)
     train_model(args)

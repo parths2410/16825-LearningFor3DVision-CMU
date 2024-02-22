@@ -25,6 +25,7 @@ def get_args_parser():
     parser.add_argument('--load_checkpoint', action='store_true')  
     parser.add_argument('--device', default='cuda', type=str) 
     parser.add_argument('--load_feat', action='store_true') 
+    parser.add_argument('--cuda', default=0, type=int) 
     return parser
 
 def preprocess(feed_dict, args):
@@ -182,4 +183,7 @@ def evaluate_model(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Singleto3D', parents=[get_args_parser()])
     args = parser.parse_args()
+
+
+    torch.cuda.set_device(args.cuda)
     evaluate_model(args)
