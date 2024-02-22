@@ -30,12 +30,15 @@ class SingleViewto3D(nn.Module):
             # TODO:
             self.decoder = nn.Sequential(
                 nn.Linear(512, 1024),
+                nn.BatchNorm1d(1024),
                 nn.ReLU(),
-                nn.Linear(1024, 4096),
+                nn.Linear(1024, 1024),
+                nn.BatchNorm1d(1024),
                 nn.ReLU(),
-                nn.Linear(4096, 4096),
+                nn.Linear(1024, 2048),
+                nn.BatchNorm1d(2048),
                 nn.ReLU(),
-                nn.Linear(4096, args.n_points * 3)
+                nn.Linear(2048, args.n_points * 3)
             )
         elif args.type == "mesh":
             # Input: b x 512
@@ -46,12 +49,15 @@ class SingleViewto3D(nn.Module):
             # TODO:
             self.decoder = nn.Sequential(
                 nn.Linear(512, 1024),
+                nn.BatchNorm1d(1024),
                 nn.ReLU(),
-                nn.Linear(1024, 4096),
+                nn.Linear(1024, 1024),
+                nn.BatchNorm1d(1024),
                 nn.ReLU(),
-                nn.Linear(4096, 4096),
+                nn.Linear(1024, 2048),
+                nn.BatchNorm1d(2048),
                 nn.ReLU(),
-                nn.Linear(4096, mesh_pred.verts_packed().shape[0] * 3)
+                nn.Linear(2048, args.n_points * 3)
             )          
 
     def forward(self, images, args):
