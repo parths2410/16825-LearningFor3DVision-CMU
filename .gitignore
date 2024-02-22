@@ -13,3 +13,4 @@ reference/*
 *.mat
 ./HW-4/python/data/*
 *.ipynb
+*.pth
