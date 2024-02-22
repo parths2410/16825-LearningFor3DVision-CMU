@@ -130,6 +130,7 @@ def train_model(args):
         # fitting
         fit_voxel(voxels_src, voxels_tgt, args)
 
+    
 
     elif args.type == "point":
         # initialization
