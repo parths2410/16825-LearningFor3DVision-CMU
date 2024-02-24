@@ -12,6 +12,13 @@ import mcubes
 import utils_vox
 import matplotlib.pyplot as plt 
 
+from torch.utils.tensorboard import SummaryWriter
+
+from datetime import datetime
+dt = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') 
+writer = SummaryWriter(log_dir='./logs/train_' + dt)
+
+
 def get_args_parser():
     parser = argparse.ArgumentParser('Singleto3D', add_help=False)
     parser.add_argument('--arch', default='resnet18', type=str)
@@ -159,7 +166,7 @@ def evaluate_model(args):
         # TODO:
         # if (step % args.vis_freq) == 0:
         #     # visualization block
-        #     #  rend = 
+        #     rend = 
         #     plt.imsave(f'vis/{step}_{args.type}.png', rend)
       
 
@@ -173,7 +180,8 @@ def evaluate_model(args):
         avg_f1_score.append(torch.tensor([metrics["F1@%f" % t] for t in thresholds]))
 
         print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); F1@0.05: %.3f; Avg F1@0.05: %.3f" % (step, max_iter, total_time, read_time, iter_time, f1_05, torch.tensor(avg_f1_score_05).mean()))
-    
+
+
 
     avg_f1_score = torch.stack(avg_f1_score).mean(0)
 

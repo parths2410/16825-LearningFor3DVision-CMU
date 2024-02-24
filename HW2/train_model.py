@@ -9,6 +9,11 @@ from pytorch3d.datasets.r2n2.utils import collate_batched_R2N2
 from pytorch3d.ops import sample_points_from_meshes
 from r2n2_custom import R2N2
 
+from torch.utils.tensorboard import SummaryWriter
+
+from datetime import datetime
+
+import os
 
 def get_args_parser():
     parser = argparse.ArgumentParser("Singleto3D", add_help=False)
@@ -29,6 +34,7 @@ def get_args_parser():
     parser.add_argument('--load_feat', action='store_true') 
     parser.add_argument("--device", default="cuda", type=str)
     parser.add_argument("--cuda", default=0, type=int)
+    parser.add_argument("--seed", default=42, type=int)
     return parser
 
 
@@ -96,19 +102,28 @@ def train_model(args):
     start_iter = 0
     start_time = time.time()
 
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0 = 500, T_mult=1, eta_min=0, last_epoch=-1, verbose='deprecated')
+
     if args.load_checkpoint:
         checkpoint = torch.load(f"checkpoint_{args.type}.pth")
         model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         start_iter = checkpoint["step"]
         print(f"Succesfully loaded iter {start_iter}")
-
+    
+    # Initialize weights
+    # print("Initializing weights")
+    # for layer in model.decoder:
+    #    if layer.__class__.__name__.startswith('Linear'):
+    #        torch.nn.init.kaiming_uniform_(layer.weight, a=0.01, mode='fan_in', nonlinearity='relu')
+    
     print("Starting training !")
     for step in range(start_iter, args.max_iter):
         iter_start_time = time.time()
 
         if step % len(train_loader) == 0:  # restart after one epoch
-            train_loader = iter(loader)
+            print("Starting Epoch [{}]".format(step // len(train_loader)))
+            train_loader = iter(loader)        
 
         read_start_time = time.time()
 
@@ -129,6 +144,7 @@ def train_model(args):
         iter_time = time.time() - iter_start_time
 
         loss_vis = loss.cpu().item()
+        writer.add_scalar('Loss/train', loss_vis, step)
 
         if (step % args.save_freq) == 0 and step > 0:
             print(f"Saving checkpoint at step {step}")
@@ -140,13 +156,17 @@ def train_model(args):
                 },
                 f"checkpoint_{args.type}.pth",
             )
+
+            if not os.path.exists(f'checkpoints/checkpoints_{args.type}_{dt}'):
+                os.makedirs(f'checkpoints/checkpoints_{args.type}_{dt}')
+
             torch.save(
                 {
                     "step": step,
                     "model_state_dict": model.state_dict(),
                     "optimizer_state_dict": optimizer.state_dict(),
                 },
-                f"checkpoints/checkpoint_{args.type}_{step}.pth",
+                f"checkpoints/checkpoints_{args.type}_{dt}/checkpoint_{args.type}_{step}.pth",
             )
         print(
             "[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f"
@@ -160,5 +180,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Singleto3D", parents=[get_args_parser()])
     args = parser.parse_args()
 
-    torch.cuda.set_device(args.cuda)
+    # torch.cuda.set_device(args.cuda)
+
+    torch.manual_seed(args.seed)
+
+    dt = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') 
+    writer = SummaryWriter(log_dir=f'./logs/train_{args.type}_{dt}')
+
     train_model(args)
