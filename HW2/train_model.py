@@ -157,17 +157,17 @@ def train_model(args):
                 f"checkpoint_{args.type}.pth",
             )
 
-            if not os.path.exists(f'checkpoints/checkpoints_{args.type}_{dt}'):
-                os.makedirs(f'checkpoints/checkpoints_{args.type}_{dt}')
+            # if not os.path.exists(f'checkpoints/checkpoints_{args.type}_{dt}'):
+            #     os.makedirs(f'checkpoints/checkpoints_{args.type}_{dt}')
 
-            torch.save(
-                {
-                    "step": step,
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                },
-                f"checkpoints/checkpoints_{args.type}_{dt}/checkpoint_{args.type}_{step}.pth",
-            )
+            # torch.save(
+            #     {
+            #         "step": step,
+            #         "model_state_dict": model.state_dict(),
+            #         "optimizer_state_dict": optimizer.state_dict(),
+            #     },
+            #     f"checkpoints/checkpoints_{args.type}_{dt}/checkpoint_{args.type}_{step}.pth",
+            # )
         print(
             "[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f"
             % (step, args.max_iter, total_time, read_time, iter_time, loss_vis)

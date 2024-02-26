@@ -2,6 +2,8 @@ import argparse
 import os
 import time
 
+import imageio
+
 import losses
 from pytorch3d.utils import ico_sphere
 from r2n2_custom import R2N2
@@ -10,7 +12,8 @@ from pytorch3d.structures import Meshes
 import dataset_location
 import torch
 
-
+from render import render360
+from utils import vox2mesh
 
 
 
@@ -59,6 +62,11 @@ def fit_mesh(mesh_src, mesh_tgt, args):
     
     mesh_src.offset_verts_(deform_vertices_src)
 
+    rends = render360(mesh_src, type = "mesh")
+    imageio.mimsave('output/mesh_fit_src.gif', rends, fps=24)
+    rends = render360(mesh_tgt, type = "mesh")
+    imageio.mimsave('output/mesh_fit_tgt.gif', rends, fps=24)
+
     print('Done!')
 
 
@@ -82,6 +90,11 @@ def fit_pointcloud(pointclouds_src, pointclouds_tgt, args):
 
         print("[%4d/%4d]; ttime: %.0f (%.2f); loss: %.3f" % (step, args.max_iter, total_time,  iter_time, loss_vis))
     
+    rends = render360(pointclouds_src, type = "point")
+    imageio.mimsave('output/point_fit_src.gif', rends, fps=24)
+    rends = render360(pointclouds_tgt, type = "point")
+    imageio.mimsave('output/point_fit_tgt.gif', rends, fps=24)
+
     print('Done!')
 
 
@@ -105,6 +118,15 @@ def fit_voxel(voxels_src, voxels_tgt, args):
 
         print("[%4d/%4d]; ttime: %.0f (%.2f); loss: %.3f" % (step, args.max_iter, total_time,  iter_time, loss_vis))
     
+    voxels_src = vox2mesh(voxels_src, color=[0.7, 0.7, 1.0])
+    rend = render360(voxels_src, type="mesh")
+    imageio.mimsave(f'output/vox_fit_src.gif', rend, fps=30)
+    
+    voxels_tgt = vox2mesh(voxels_tgt, color=[0.7, 0.7, 1.0])
+    rend = render360(voxels_tgt, type="mesh")
+    imageio.mimsave(f'output/vox_fir_tgt.gif', rend, fps=30)
+
+
     print('Done!')
 
 

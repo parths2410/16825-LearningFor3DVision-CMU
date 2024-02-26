@@ -12,12 +12,19 @@ import mcubes
 import utils_vox
 import matplotlib.pyplot as plt 
 
+from render import render360
+
 from torch.utils.tensorboard import SummaryWriter
 
 from datetime import datetime
 dt = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') 
-writer = SummaryWriter(log_dir='./logs/train_' + dt)
+# writer = SummaryWriter(log_dir='./logs/eval_' + dt)
 
+from pytorch3d.transforms import Rotate, axis_angle_to_matrix
+import math
+import numpy as np
+
+import imageio
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Singleto3D', add_help=False)
@@ -33,6 +40,7 @@ def get_args_parser():
     parser.add_argument('--device', default='cuda', type=str) 
     parser.add_argument('--load_feat', action='store_true') 
     parser.add_argument('--cuda', default=0, type=int) 
+    parser.add_argument('--checkpoint', default='', type=str)  
     return parser
 
 def preprocess(feed_dict, args):
@@ -43,8 +51,9 @@ def preprocess(feed_dict, args):
     mesh = feed_dict['mesh']
     if args.load_feat:
         images = torch.stack(feed_dict['feats']).to(args.device)
+    images_og = feed_dict['images'].squeeze(1)
 
-    return images, mesh
+    return images, mesh, images_og
 
 def save_plot(thresholds, avg_f1_score, args):
     fig = plt.figure()
@@ -139,7 +148,10 @@ def evaluate_model(args):
     avg_r_score = []
 
     if args.load_checkpoint:
-        checkpoint = torch.load(f'checkpoint_{args.type}.pth')
+        filename = f'checkpoint_{args.type}.pth'
+        if args.checkpoint != '':
+            filename = args.checkpoint
+        checkpoint = torch.load(filename)
         model.load_state_dict(checkpoint['model_state_dict'])
         print(f"Succesfully loaded iter {start_iter}")
     
@@ -152,7 +164,7 @@ def evaluate_model(args):
 
         feed_dict = next(eval_loader)
 
-        images_gt, mesh_gt = preprocess(feed_dict, args)
+        images_gt, mesh_gt, images_og = preprocess(feed_dict, args)
 
         read_time = time.time() - read_start_time
 
@@ -161,14 +173,31 @@ def evaluate_model(args):
         if args.type == "vox":
             predictions = predictions.permute(0,1,4,3,2)
 
-        metrics = evaluate(predictions, mesh_gt, thresholds, args)
-
+        try:
+            metrics = evaluate(predictions, mesh_gt, thresholds, args)
+        except Exception as e:
+            print(e)
+            continue
         # TODO:
-        # if (step % args.vis_freq) == 0:
-        #     # visualization block
-        #     rend = 
-        #     plt.imsave(f'vis/{step}_{args.type}.png', rend)
-      
+        if (step % args.vis_freq) == 0:
+            # visualization block
+            rend = render360(predictions, type=args.type) 
+            imageio.mimsave(f'vis/{args.type}_{step}_pred.gif', rend, fps=30)     
+
+            if args.type == "mesh":
+                rend = render360(mesh_gt, type=args.type)
+            elif args.type == "point":
+                points_gt = sample_points_from_meshes(mesh_gt, args.n_points)
+                rend = render360(points_gt, type=args.type)
+            elif args.type == "vox":
+                rend = render360(mesh_gt, type="mesh")
+            imageio.mimsave(f'vis/{args.type}_{step}_gt.gif', rend, fps=30)
+
+            img_np = images_og.squeeze(1).squeeze().detach().cpu().numpy() * 255
+
+            img_np = img_np.astype(np.uint8)
+            # save image
+            imageio.imsave(f'vis/{args.type}_{step}_img.png', img_np)
 
         total_time = time.time() - start_time
         iter_time = time.time() - iter_start_time

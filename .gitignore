@@ -16,3 +16,4 @@ reference/*
 *.pth
 */logs/
 *.png
+*.gif

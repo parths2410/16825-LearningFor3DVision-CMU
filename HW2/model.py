@@ -28,18 +28,22 @@ class SingleViewto3D(nn.Module):
             )
             self.layer1 = torch.nn.Sequential(
                 torch.nn.ConvTranspose3d(256, 128, kernel_size=4, stride=2, bias=False, padding=1),
+                torch.nn.BatchNorm3d(128),
                 torch.nn.ReLU()
             )
             self.layer2 = torch.nn.Sequential(
                 torch.nn.ConvTranspose3d(128, 64, kernel_size=4, stride=2, bias=False, padding=1),
+                torch.nn.BatchNorm3d(64),
                 torch.nn.ReLU()
             )
             self.layer3 = torch.nn.Sequential(
                 torch.nn.ConvTranspose3d(64, 32, kernel_size=4, stride=2, bias=False, padding=1),
+                torch.nn.BatchNorm3d(32),
                 torch.nn.ReLU()
             )
             self.layer4 = torch.nn.Sequential(
                 torch.nn.ConvTranspose3d(32, 8, kernel_size=4, stride=2, bias=False, padding=1),
+                torch.nn.BatchNorm3d(8),
                 torch.nn.ReLU()
             )
             self.layer5 = torch.nn.Sequential(
@@ -60,9 +64,7 @@ class SingleViewto3D(nn.Module):
             self.n_point = args.n_points
             # TODO:
             self.decoder = nn.Sequential(
-                nn.Linear(512, 2048),
-                nn.ReLU(),
-                nn.Linear(2048, args.n_points),
+                nn.Linear(512, args.n_points),
                 nn.ReLU(),
                 nn.Linear(args.n_points, args.n_points * 3),
                 nn.Tanh()
@@ -74,9 +76,11 @@ class SingleViewto3D(nn.Module):
             mesh_pred = ico_sphere(4, self.device)
             self.mesh_pred = pytorch3d.structures.Meshes(mesh_pred.verts_list()*args.batch_size, mesh_pred.faces_list()*args.batch_size)
             # TODO:
-            n_verts = self.mesh_pred.verts_packed().shape[0]
+            n_verts = mesh_pred.verts_packed().shape[0]
             self.decoder = nn.Sequential(
-                nn.Linear(512, n_verts*3),
+                nn.Linear(512, n_verts),
+                nn.ReLU(),
+                nn.Linear(n_verts, n_verts* 3),
                 nn.Tanh()
             )  
 
@@ -117,8 +121,7 @@ class SingleViewto3D(nn.Module):
             # TODO:
             # deform_vertices_pred =             
             deform_vertices_pred = self.decoder(encoded_feat)
-            n_verts = self.mesh_pred.verts_packed().shape[0]
-            deform_vertices_pred = deform_vertices_pred.view(-1, n_verts, 3)
+            deform_vertices_pred = deform_vertices_pred.view(-1, 3)
             mesh_pred = self.mesh_pred.offset_verts(deform_vertices_pred)
-            return  mesh_pred          
+            return mesh_pred          
 
