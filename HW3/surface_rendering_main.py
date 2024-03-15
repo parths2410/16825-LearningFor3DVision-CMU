@@ -405,14 +405,14 @@ def train_images(
                 model, create_surround_cameras(4.0, n_poses=20, up=(0.0, 0.0, 1.0), focal_length=2.0),
                 cfg.data.image_size, file_prefix='volsdf'
             )
-            imageio.mimsave(f'images/part_7_few-20.gif', [np.uint8(im * 255) for im in test_images])
+            imageio.mimsave(f'images/part_7_n50.gif', [np.uint8(im * 255) for im in test_images])
 
             try:
                 test_images = render_geometry(
                     model, create_surround_cameras(4.0, n_poses=20, up=(0.0, 0.0, 1.0), focal_length=2.0),
                     cfg.data.image_size, file_prefix='volsdf_geometry'
                 )
-                imageio.mimsave('images/part_7_geometry_few-20.gif', [np.uint8(im * 255) for im in test_images])
+                imageio.mimsave('images/part_7_geometry_n50.gif', [np.uint8(im * 255) for im in test_images])
             except Exception as e:
                 print("Empty mesh")
                 pass
@@ -421,7 +421,7 @@ def train_images(
 def main(cfg: DictConfig):
     os.chdir(hydra.utils.get_original_cwd())
     
-    torch.cuda.set_device(1)
+    torch.cuda.set_device(2)
     if cfg.type == 'render':
         render(cfg)
     elif cfg.type == 'train_points':

@@ -156,7 +156,7 @@ class SphereTracingRenderer(torch.nn.Module):
             distance = implicit_fn(points)
             points = points + directions * distance
         
-        mask = implicit_fn(points) < 1
+        mask = implicit_fn(points) < 1e4
         return points, mask
 
     def forward(
