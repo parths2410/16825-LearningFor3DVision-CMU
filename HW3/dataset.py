@@ -122,6 +122,8 @@ def get_nerf_datasets(
 
     train_idx, val_idx, test_idx = train_data["split"]
 
+    # train_idx = np.random.choice(train_idx, 20, replace=False)
+
     train_dataset, val_dataset, test_dataset = [
         ListDataset(
             [

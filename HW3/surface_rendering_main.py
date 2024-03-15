@@ -109,7 +109,7 @@ def render_images(
             origin = torch.tensor([0.0, 0.0, 0.0], device=device) 
             light_location = None if lights is None else lights[cam_idx].location.to(device)
             if lights is not None:
-                light_dir = None #TODO: Use light location and origin to compute light direction
+                light_dir = light_location - origin  #TODO: Use light location and origin to compute light direction
                 light_dir = torch.nn.functional.normalize(light_dir, dim=-1).view(-1, 3)
             xy_grid = get_pixels_from_image(image_size, camera)
             ray_bundle = get_rays_from_pixels(xy_grid, image_size, camera)
@@ -233,7 +233,7 @@ def train_points(
 
             # Get distances and enforce point cloud loss
             distances, gradients = model.implicit_fn.get_distance_and_gradient(points)
-            loss = None # TODO (Q6): Point cloud SDF loss on distances
+            loss = torch.sum(torch.square(distances))/cfg.training.batch_size # TODO (Q6): Point cloud SDF loss on distances
             point_loss = loss
 
             # Sample random points in bounding box
@@ -405,14 +405,14 @@ def train_images(
                 model, create_surround_cameras(4.0, n_poses=20, up=(0.0, 0.0, 1.0), focal_length=2.0),
                 cfg.data.image_size, file_prefix='volsdf'
             )
-            imageio.mimsave('images/part_7.gif', [np.uint8(im * 255) for im in test_images])
+            imageio.mimsave(f'images/part_7_few-20.gif', [np.uint8(im * 255) for im in test_images])
 
             try:
                 test_images = render_geometry(
                     model, create_surround_cameras(4.0, n_poses=20, up=(0.0, 0.0, 1.0), focal_length=2.0),
                     cfg.data.image_size, file_prefix='volsdf_geometry'
                 )
-                imageio.mimsave('images/part_7_geometry.gif', [np.uint8(im * 255) for im in test_images])
+                imageio.mimsave('images/part_7_geometry_few-20.gif', [np.uint8(im * 255) for im in test_images])
             except Exception as e:
                 print("Empty mesh")
                 pass
@@ -420,7 +420,8 @@ def train_images(
 @hydra.main(config_path='configs', config_name='torus')
 def main(cfg: DictConfig):
     os.chdir(hydra.utils.get_original_cwd())
-
+    
+    torch.cuda.set_device(1)
     if cfg.type == 'render':
         render(cfg)
     elif cfg.type == 'train_points':

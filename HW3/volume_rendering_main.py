@@ -101,13 +101,13 @@ def render_images(
         if cam_idx == 0 and file_prefix == '':
             xy_grid_vis = vis_grid(xy_grid, image_size)
             plt.imsave(f'images/xy_grid_vis_{cam_idx}.png',xy_grid_vis)
-            pass
+            # pass
 
         # TODO (Q1.3): Visualize rays using vis_rays
         if cam_idx == 0 and file_prefix == '':
             ray_vis = vis_rays(ray_bundle, image_size)
             plt.imsave(f'images/ray_vis_{cam_idx}.png',ray_vis)
-            pass
+            # pass
         
         # TODO (Q1.4): Implement point sampling along rays in sampler.py
         ray_bundle = model.sampler(ray_bundle)
@@ -116,7 +116,7 @@ def render_images(
         # TODO (Q1.4): Visualize sample points as point cloud
         if cam_idx == 0 and file_prefix == '':
             render_points(f'images/sample_points_{cam_idx}.png', ray_bundle.sample_points.view(-1, 3).unsqueeze(0), image_size=256, color=[0.7, 0.7, 1], device=device)
-            pass
+            # pass
 
         # TODO (Q1.5): Implement rendering in renderer.py
         out = model(ray_bundle)
@@ -131,7 +131,9 @@ def render_images(
 
         # TODO (Q1.5): Visualize depth
         if cam_idx == 2 and file_prefix == '':
-            pass
+            depth_image = np.array(out['depth'].view(image_size[1], image_size[0]).detach().cpu())
+            plt.imsave(f'images/depth_{cam_idx}.png',  depth_image)
+            # pass
 
         # Save
         if save:
@@ -148,7 +150,7 @@ def render(
 ):
     # Create model
     model = Model(cfg)
-    model = model.cuda(); model.eval()
+    model = model.cuda(1); model.eval()
 
     # Render spiral
     cameras = create_surround_cameras(3.0, n_poses=20)
@@ -207,7 +209,7 @@ def train(
             out = model(ray_bundle)
 
             # TODO (Q2.2): Calculate loss
-            loss = None
+            loss = torch.nn.functional.mse_loss(out['feature'], rgb_gt)
 
             # Backprop
             optimizer.zero_grad()
@@ -327,7 +329,7 @@ def train_nerf(
             out = model(ray_bundle)
 
             # TODO (Q3.1): Calculate loss
-            loss = None
+            loss = torch.nn.functional.mse_loss(out['feature'], rgb_gt)
 
             # Take the training step.
             optimizer.zero_grad()
@@ -366,7 +368,7 @@ def train_nerf(
                     model, create_surround_cameras(4.0, n_poses=20, up=(0.0, 0.0, 1.0), focal_length=2.0),
                     cfg.data.image_size, file_prefix='nerf'
                 )
-                imageio.mimsave('images/part_3.gif', [np.uint8(im * 255) for im in test_images])
+                imageio.mimsave(f'images/part_3_highres.gif', [np.uint8(im * 255) for im in test_images])
 
 
 @hydra.main(config_path='./configs', config_name='sphere')

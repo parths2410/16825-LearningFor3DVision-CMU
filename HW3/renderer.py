@@ -22,23 +22,28 @@ class VolumeRenderer(torch.nn.Module):
         rays_density: torch.Tensor,
         eps: float = 1e-10
     ):
-        # TODO (1.5): Compute transmittance using the equation described in the README
-        T = torch.ones(deltas.shape).to(deltas.device)
+        # # TODO (1.5): Compute transmittance using the equation described in the README
+        T = []
+        T.append(torch.ones(deltas.shape[0], 1).to(deltas.device))
 
         for i in range(1, deltas.shape[1]):
-            T[:, i] = T[:, i-1] * torch.exp(-rays_density[:, i-1] * deltas[:, i])
-        
+            T.append( T[i-1] * torch.exp(-rays_density[:, i-1] * deltas[:, i-1]) )
+
+        T = torch.stack(T, dim=1).to(deltas.device)
+        T = T.view(deltas.shape[0], deltas.shape[1], 1)
+
         # TODO (1.5): Compute weight used for rendering from transmittance and alpha
-        weights = T * (1 - torch.exp(-rays_density * deltas))
+        weights = T * (1 - torch.exp(-rays_density * deltas )) + eps
         return weights
     
+
     def _aggregate(
         self,
         weights: torch.Tensor,
         rays_feature: torch.Tensor
     ):
         # TODO (1.5): Aggregate (weighted sum of) features using weights
-        feature = torch.sum(torch.mul(weights, rays_feature), dim=1)
+        feature = torch.sum(weights * rays_feature, dim=1)
 
         return feature
 
@@ -59,6 +64,8 @@ class VolumeRenderer(torch.nn.Module):
             # Sample points along the ray
             cur_ray_bundle = sampler(cur_ray_bundle)
             n_pts = cur_ray_bundle.sample_shape[1]
+
+            print("N-points ", cur_ray_bundle.sample_points.shape)
 
             # Call implicit function with sample points
             implicit_output = implicit_fn(cur_ray_bundle)
@@ -143,7 +150,14 @@ class SphereTracingRenderer(torch.nn.Module):
         #   in order to compute intersection points of rays with the implicit surface
         # 2) Maintain a mask with the same batch dimension as the ray origins,
         #   indicating which points hit the surface, and which do not
-        pass
+        
+        points = origins
+        for i in range(self.max_iters):
+            distance = implicit_fn(points)
+            points = points + directions * distance
+        
+        mask = implicit_fn(points) < 1
+        return points, mask
 
     def forward(
         self,
@@ -193,7 +207,9 @@ class SphereTracingRenderer(torch.nn.Module):
 
 def sdf_to_density(signed_distance, alpha, beta):
     # TODO (Q7): Convert signed distance to density with alpha, beta parameters
-    pass
+    s = -signed_distance
+    return torch.where(s <= 0, alpha * (0.5 * torch.exp(s/beta)), alpha * (1 - 0.5 * torch.exp(-s/beta)))
+
 
 class VolumeSDFRenderer(VolumeRenderer):
     def __init__(
@@ -230,7 +246,7 @@ class VolumeSDFRenderer(VolumeRenderer):
 
             # Call implicit function with sample points
             distance, color = implicit_fn.get_distance_color(cur_ray_bundle.sample_points)
-            density = None # TODO (Q7): convert SDF to density
+            density = sdf_to_density(distance, self.cfg.alpha, self.cfg.beta) # TODO (Q7): convert SDF to density
 
             # Compute length of each ray segment
             depth_values = cur_ray_bundle.sample_lengths[..., 0]

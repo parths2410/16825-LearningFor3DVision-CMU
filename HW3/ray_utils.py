@@ -89,8 +89,8 @@ def get_pixels_from_image(image_size, camera):
     W, H = image_size[0], image_size[1]
 
     # TODO (Q1.3): Generate pixel coordinates from [0, W] in x and [0, H] in y
-    x = torch.linspace(0, W - 1, W)
-    y = torch.linspace(0, H - 1, H)
+    x = torch.linspace(0, W - 1, W).to(camera.device)
+    y = torch.linspace(0, H - 1, H).to(camera.device)
     # pass
 
     # TODO (Q1.3): Convert to the range [-1, 1] in both x and y
@@ -113,7 +113,7 @@ def get_random_pixels_from_image(n_pixels, image_size, camera):
     
     # TODO (Q2.1): Random subsampling of pixel coordinaters
     xy_grid_sub = xy_grid[torch.randperm(xy_grid.shape[0])[:n_pixels]]
-    pass
+    # pass
 
     # Return
     return xy_grid_sub.reshape(-1, 2)[:n_pixels]
