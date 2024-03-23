@@ -37,9 +37,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Don't display a date in the title and remove the white space
-\predate{}
-\postdate{}
-\date{}
+% \predate{}
+% \postdate{}
+% \date{}
 
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
@@ -75,7 +75,7 @@
 \question \textbf{[10 pts]}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{figure1.png}
+    \includegraphics[width=\textwidth]{./figure1.png}
     \caption{A ray through a non-homogeneous medium. The medium is composed of 3 segments ($y1y2$, $y2y3$, $y3y4$). Each segment has a different absorption coefficient, shown as $\sigma_1, \sigma_2, \sigma_3$ in the figure. The length of each segment is also annotated in the figure (1m means 1 meter).}
     \label{fig:q1}
 \end{figure}
@@ -94,9 +94,57 @@ Please compute the following transmittance:
 \begin{tcolorbox}[fit,height=20cm, width=\textwidth, blank, borderline={0.5pt}{-2pt},halign=left, valign=center, nobeforeafter]
 
 
-% \begin{studentsolution}
-% Write your solution here.
-% \end{studentsolution}
+\begin{studentsolution}
+
+We know,
+\begin{equation}
+    T(a, b) = e^{- \sigma(y) dy }
+\end{equation}
+Therefore we can find transmittance of the 3 segments as,
+\begin{equation}
+    T(y_1, y_2) = e^{- \sigma_1 * 2} = e^{-2}
+\end{equation}
+\begin{equation}
+    T(y_2, y_3) = e^{- \sigma_2 * 1} = e^{-0.5}
+\end{equation}
+\begin{equation}
+    T(y_3, y_4) = e^{- \sigma_3 * 3} = e^{-30}
+\end{equation}
+
+We also assume that there is a vacuum in the segment of x to y1, therefore,
+\begin{equation}
+    T(x, y1) = 1
+\end{equation}
+
+Now finding answers using multiplicative property of transmittance- 
+
+1) $T(y_1, y_2)$
+
+\begin{equation}
+    T (y_1, y_2) = e^{-2} = 0.135
+\end{equation}
+
+2) $T(y_2, y_4)$
+
+\begin{equation}
+    T (y_2, y_4) = T(y_2. y_3) \times T (y_3, y_4) = e^{-0.5} \times e^{-30} = e^{-30.5} = 5.68 \times 10^{-14}
+\end{equation}
+
+3) $T(x, y_4)$
+
+\begin{equation}
+    T (X, y_4) = T(x. y_1) \times T(y_1. y_2) \times T(y_2. y_3) \times T (y_3, y_4) = 1 \times e^{-2} \times e^{-0.5} \times e^{-30} = e^{-32.5} = 7.68 \times 10^{-15}
+\end{equation}
+
+3) $T(x, y_3)$
+
+\begin{equation}
+    T (x, y_4) = T(x. y_1) \times T(y_1. y_2) \times T(y_2. y_3) = 1 \times e^{-2} \times e^{-0.5} = e^{-2.5} = 0.082
+\end{equation}
+
+
+
+\end{studentsolution}
 
 \end{tcolorbox}
 \end{questions}
